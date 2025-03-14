@@ -24,6 +24,8 @@ def get_complex_grid(
     step: float
 ) -> np.ndarray:
     """
+    Generates a 2D array of complex numbers evenly spaced between top_left and bottom_right.
+
     :param top_left: Top-left complex number (included in the grid)
     :param bottom_right: Bottom-right complex number (not included in the grid)
     :param step: The spacing in between points in the real and imaginary direction
@@ -31,6 +33,10 @@ def get_complex_grid(
     :return: A 2D array with complex numbers evenly spaced between top_left and bottom_right
     """
 
-    real_range = np.arange(top_left + 0j, bottom_right + 0j, step) #array of real values
-    imag_range = np.arange(top_left * 1j, bottom_right * 1j, -step) #array of imaginary values
-    return real_range[:, None] + imag_range #combined array
+    # Extract real and imaginary parts separately
+    real_values = np.arange(top_left.real, bottom_right.real, step)  # Correct real range
+    imag_values = np.arange(top_left.imag, bottom_right.imag, -step)  # Correct imaginary range (descending)
+
+    # Create a 2D grid of complex numbers
+    return real_values[:, None] + 1j * imag_values  # Broadcasting to form a complex grid
+
