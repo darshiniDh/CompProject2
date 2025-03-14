@@ -10,9 +10,11 @@ def get_escape_time(c: complex, max_iterations: int) -> int | None:
     Otherwise, a number in range(max_iterations) will be returned which tells us how many iterations passed before the point escaped.
     """
 
-    z = 0 + 0j #initialize z as 0
-    for i in range(max_iterations):
-        z = z*z + c
+    z = c #initialize z as c
+    if abs(z) > 2:
+        return 0
+    for i in range(1, max_iterations+1):
+        z = z**2 + c
         if abs(z) > 2:
             return i #return iteration count
     return None #return None if it does not escape
@@ -38,5 +40,4 @@ def get_complex_grid(
     imag_values = np.arange(top_left.imag, bottom_right.imag, -step)  # Correct imaginary range (descending)
 
     # Create a 2D grid of complex numbers
-    return real_values[:, None] + 1j * imag_values  # Broadcasting to form a complex grid
-
+    return real_values + 1j * imag_values[:, None]  # Broadcasting to form a complex grid
