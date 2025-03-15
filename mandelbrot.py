@@ -76,7 +76,6 @@ def get_escape_time_color_arr(c_arr: np.array, max_iterations: int) -> np.array:
         #Points that never escape are colored black (0.0)
         color_arr[escape_time == (max_iterations + 1)] = 0.0
 
-import numpy as np
     
 def julia_set(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
     #defines points 
