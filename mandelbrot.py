@@ -41,3 +41,42 @@ def get_complex_grid(
 
     # Create a 2D grid of complex numbers
     return real_values + 1j * imag_values[:, None]  # Broadcasting to form a complex grid
+
+
+def get_escape_time_color_arr(c_arr: np.array, max_iterations: int) -> np.array:
+    #Initialize escape_time array with the maximum value(num_iterations + 1for non-escaping points)
+    escape_time = np.ones(c_arr.shape, dtype=int) * (max_iterations + 1)
+
+    #Create arrays for real and imaginary parts of z, initialized to 0
+    z_real = np.zeros_like(c_arr, dtype=float)
+    z_imag = np.zeros_like(c_arr, dtype=float)
+
+    #Iterate for each point in c_arr
+    for iteration in range(max_iterations):
+        #Compute Mandelbrot iteration: z = z^2 + c
+        z_real_sq = z_real * z_real - z_imag * z_imag
+        z_imag_sq = 2 * z_real * z_imag
+
+        z_real = z_real_sq + c_arr.real # z^2 + c
+        z_imag = z_imag_sq + c_arr.imag # z^2 + c
+
+        #Find points where z > 2 to escape
+        escape_mask = z_real**2 + z_imag**2 > 4
+
+        #Set escape times for points
+        escape_time[escape_mask] = np.minimum(escape_time[escape_mask], iteration + 1)
+
+        #Stop iterating if all points escaped
+        if np.all(escape_time <= max_iterations):
+            break
+
+        # Calculate color values using escape times
+        color_arr = (max_iterations - escape_time + 1) / (max_iterations + 1)
+
+        #Points that never escape are colored black (0.0)
+        color_arr[escape_time == (max_iterations + 1)] = 0.0
+
+        #Points that escaped in exactly 0 iterations (0 escape time) are colored white (1.0)
+        color_arr[escape_time == 0] = 1.0
+
+        return color_arr
