@@ -43,40 +43,48 @@ def get_complex_grid(
     return real_values + 1j * imag_values[:, None]  # Broadcasting to form a complex grid
 
 
-def get_escape_time_color_arr(c_arr: np.array, max_iterations: int) -> np.array:
-    #Initialize escape_time array with the maximum value(num_iterations + 1for non-escaping points)
-    escape_time = np.ones(c_arr.shape, dtype=int) * (max_iterations + 1)
+def get_escape_time_color_arr(c_arr: np.ndarray, max_iterations: int) -> np.ndarray:
+    """
+    Compute the escape time color array for the Mandelbrot set.
 
-    #Create arrays for real and imaginary parts of z, initialized to 0
+    Parameters:
+    c_arr (np.ndarray): A 2D array of complex numbers representing points in the complex plane.
+    max_iterations (int): Maximum number of iterations to determine escape time.
+
+    Returns:
+    np.ndarray: A 2D array of the same shape as c_arr with greyscale color values in [0,1].
+    """
+    # Initialize escape_time array with the maximum value (max_iterations + 1 for non-escaping points)
+    escape_time = np.full(c_arr.shape, max_iterations + 1, dtype=int)
+
+    # Create arrays for real and imaginary parts of z, initialized to 0
     z_real = np.zeros_like(c_arr, dtype=float)
     z_imag = np.zeros_like(c_arr, dtype=float)
 
-    #Iterate for each point in c_arr
-    for iteration in range(max_iterations):
-        #Compute Mandelbrot iteration: z = z^2 + c
-        z_real_sq = z_real * z_real - z_imag * z_imag
+    # Iterate for each point in c_arr
+    for iteration in range(1, max_iterations + 1):
+        # Compute Mandelbrot iteration: z = z^2 + c
+        z_real_sq = np.square(z_real) - np.square(z_imag)
         z_imag_sq = 2 * z_real * z_imag
 
-        z_real = z_real_sq + c_arr.real # z^2 + c
-        z_imag = z_imag_sq + c_arr.imag # z^2 + c
+        z_real = z_real_sq + c_arr.real  # z^2 + c
+        z_imag = z_imag_sq + c_arr.imag  # z^2 + c
 
-        #Find points where z > 2 to escape
-        escape_mask = z_real**2 + z_imag**2 > 4
+        # Find points where |z| > 2 to escape, using np.abs to avoid overflow warnings
+        escaped = np.greater(np.square(z_real) + np.square(z_imag), 4, where=np.isfinite(z_real) & np.isfinite(z_imag))
 
-        #Set escape times for points
-        escape_time[escape_mask] = np.minimum(escape_time[escape_mask], iteration + 1)
+        # Set escape times for newly escaped points
+        escape_time[np.logical_and(escaped, escape_time == max_iterations + 1)] = iteration
 
-        #Stop iterating if all points escaped
-        if np.all(escape_time <= max_iterations):
-            break
+        mask = np.abs(z_real) < 1e10
+        z_real = np.where(mask, z_real, 1e10)
+        z_imag = np.where(mask, z_imag, 1e10)
 
-        # Calculate color values using escape times
-        color_arr = (max_iterations - escape_time + 1) / (max_iterations + 1)
-
-        #Points that never escape are colored black (0.0)
-        color_arr[escape_time == (max_iterations + 1)] = 0.0
-
+    color_arr = (max_iterations - escape_time + 1) / (max_iterations + 1)
+    color_arr[escape_time == (max_iterations + 1)] = 0.0
     
+    return color_arr
+
 def get_julia_color_arr(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
     #defines points 
     x = np.linspace(-2 / zoom, 2 / zoom, width)
