@@ -77,7 +77,7 @@ def get_escape_time_color_arr(c_arr: np.array, max_iterations: int) -> np.array:
         color_arr[escape_time == (max_iterations + 1)] = 0.0
 
     
-def julia_set(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
+def get_julia_color_arr(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
     #defines points 
     x = np.linspace(-2 / zoom, 2 / zoom, width)
     y = np.linspace(-2 / zoom, 2 / zoom, height)
