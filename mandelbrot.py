@@ -85,19 +85,31 @@ def get_escape_time_color_arr(c_arr: np.ndarray, max_iterations: int) -> np.ndar
     
     return color_arr
 
-def get_julia_color_arr(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
-    #defines points 
-    x = np.linspace(-2 / zoom, 2 / zoom, width)
-    y = np.linspace(-2 / zoom, 2 / zoom, height)
-    X, Y = np.meshgrid(x, y)
-    Z = X + 1j * Y
-    #creates escape time array
-    escape_time = np.full(Z.shape, max_iterations, dtype=int)
-    #Iteration
-    for i in range(max_iterations):
-        mask = np.abs(Z) <= 2
-        Z[mask] = Z[mask]**2 + c
-        escape_time[mask & (np.abs(Z) > 2)] = i
+def get_julia_color_arr(c_arr: np.ndarray, julia_c: complex, max_iterations: int) -> np.ndarray:
 
-    return escape_time
+    escape_time = np.full(c_arr.shape, max_iterations + 1, dtype=int)
+    z_real = c_arr.real.copy()
+    z_imag = c_arr.imag.copy()
+    
+    for iteration in range(1, max_iterations + 1):
+        # Computes Julia iteration:
+        z_real_sq = np.square(z_real) - np.square(z_imag)
+        z_imag_sq = 2 * z_real * z_imag
+
+        z_real = z_real_sq + julia_c.real
+        z_imag = z_imag_sq + julia_c.imag
+
+        escaped = np.greater(np.square(z_real) + np.square(z_imag), 4, where=np.isfinite(z_real) & np.isfinite(z_imag))
+
+        escape_time[np.logical_and(escaped, escape_time == max_iterations + 1)] = iteration
+
+        mask = np.abs(z_real) < 1e10
+        z_real = np.where(mask, z_real, 1e10)
+        z_imag = np.where(mask, z_imag, 1e10)
+
+    color_arr = (max_iterations - escape_time + 1) / (max_iterations + 1)
+    color_arr[escape_time == (max_iterations + 1)] = 0.0
+
+    return color_arr
+
 
