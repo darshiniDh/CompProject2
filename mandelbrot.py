@@ -76,6 +76,24 @@ def get_escape_time_color_arr(c_arr: np.array, max_iterations: int) -> np.array:
         #Points that never escape are colored black (0.0)
         color_arr[escape_time == (max_iterations + 1)] = 0.0
 
+import numpy as np
+
+def julia_set(c: complex, width: int, height: int, zoom: float, max_iterations: int) -> np.ndarray:
+    x = np.linspace(-2 / zoom, 2 / zoom, width)
+    y = np.linspace(-2 / zoom, 2 / zoom, height)
+    X, Y = np.meshgrid(x, y)
+    Z = X + 1j * Y
+
+    escape_time = np.full(Z.shape, max_iterations, dtype=int)
+
+    for i in range(max_iterations):
+        mask = np.abs(Z) <= 2
+        Z[mask] = Z[mask]**2 + c
+        escape_time[mask & (np.abs(Z) > 2)] = i
+
+    return escape_time
+
+
         #Points that escaped in exactly 0 iterations (0 escape time) are colored white (1.0)
         color_arr[escape_time == 0] = 1.0
 
